@@ -1,0 +1,47 @@
+# Arquivos gerados pelo sistema operacional
+.DS_Store
+Thumbs.db
+
+# Dependências
+node_modules/
+/.pnp
+.pnp.js
+
+# Arquivos de build
+/dist
+/build
+/out
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Arquivos de cobertura de testes
+coverage/
+
+# Arquivos do editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos temporários
+.tmp/
+.temp/
+
+# Arquivos do Prisma
+prisma/.env
+
+# Arquivos de cache
+.cache/
+.eslintcache

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api.ts';
-import { useAuth } from '../contexts/auth.tsx';
 import '../styles/Register.css';
 
 const Register: React.FC = () => {

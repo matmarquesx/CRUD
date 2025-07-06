@@ -5,12 +5,11 @@ import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
-// Interfaces
 interface RegisterRequest {
   username: string;
   password: string;
   nome: string;
-  tipo: string; // 'admin' ou '0' para admin, 'user' ou '1' para usuário comum
+  tipo: string;
 }
 
 interface LoginRequest {
@@ -28,27 +27,31 @@ interface RecoverRequest {
 }
 
 export class AuthController {
-constructor() {
-  this.criarUsuarioAdminPadrao();
-}
-
-private async criarUsuarioAdminPadrao() {
-  const existe = await prisma.usuario.findUnique({ where: { username: 'admin' } });
-  if (!existe) {
-    const hashedPassword = await bcrypt.hash('admin', 10);
-    await prisma.usuario.create({
-      data: {
-        username: 'admin',
-        password: hashedPassword,
-        nome: 'Administrador',
-        tipo: 'admin',      // Ou '0', se seu backend usa número
-        status: 'A',
-        quant_acesso: 0
-      }
-    });
-    console.log('Usuário admin criado: admin/admin');
+  constructor() {
+    this.criarUsuarioAdminPadrao();
   }
-}
+
+  private async criarUsuarioAdminPadrao() {
+    try {
+      const existe = await prisma.usuario.findUnique({ where: { username: 'admin' } });
+      if (!existe) {
+        const hashedPassword = await bcrypt.hash('admin', 10);
+        await prisma.usuario.create({
+          data: {
+            username: 'admin',
+            password: hashedPassword,
+            nome: 'Administrador',
+            tipo: '0',
+            status: 'A',
+            quant_acesso: 0
+          }
+        });
+        console.log('Usuário admin criado: admin/admin');
+      }
+    } catch (error) {
+      console.error('Erro ao criar usuário admin padrão:', error);
+    }
+  }
 
   async register(req: Request, res: Response) {
     try {
@@ -93,14 +96,20 @@ private async criarUsuarioAdminPadrao() {
       }
 
       const user = await prisma.usuario.findUnique({ where: { username } });
-      if (!user) return res.status(401).json({ message: 'Credenciais inválidas' });
+      if (!user) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
 
-      if (user.status === 'B') return res.status(403).json({ message: 'Usuário bloqueado' });
-      if (user.status !== 'A') return res.status(403).json({ message: 'Usuário inativo' });
+      if (user.status === 'B') {
+        return res.status(403).json({ message: 'Usuário bloqueado' });
+      }
+      if (user.status !== 'A') {
+        return res.status(403).json({ message: 'Usuário inativo' });
+      }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        // ⚠️ Simulação de bloqueio após falhas (exemplo didático)
+        // Simulação de bloqueio após falhas (exemplo didático)
         if (Math.random() < 0.3) {
           await prisma.usuario.update({
             where: { username },
@@ -150,7 +159,7 @@ private async criarUsuarioAdminPadrao() {
 
   async changePassword(req: Request, res: Response) {
     try {
-      const userSession = req.usuario;
+      const userSession = req.usuario;  // Middleware deve popular req.usuario
       if (!userSession) return res.status(401).json({ message: 'Usuário não autenticado' });
 
       const { oldPassword, newPassword } = req.body as PasswordChangeRequest;
@@ -203,4 +212,5 @@ private async criarUsuarioAdminPadrao() {
     }
   }
 }
+
 export const authController = new AuthController();

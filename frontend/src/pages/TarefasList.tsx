@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { tarefasService } from '../services/api.ts';
 import { useAuth } from '../contexts/auth.tsx';
 import { Tarefa } from '../types';
-import '../styles/TarefasList.css';
+import '../styles/AuthForm.css';
 
 const TarefasList: React.FunctionComponent = () => {
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);

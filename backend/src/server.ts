@@ -1,32 +1,22 @@
-// Arquivo para configuração do servidor
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
-import { PrismaClient } from '@prisma/client';
-import { authRoutes } from './routes/auth.routes';
-import { tarefasRoutes } from './routes/tarefas.routes';
+import { authRoutes } from './routes/auth.routes'; // ajuste o caminho
+import { tarefasRoutes } from './routes/tarefas.routes'; // ajuste o caminho
 
-// Inicializa variáveis de ambiente
 dotenv.config();
 
-// Inicializa o Prisma
-export const prisma = new PrismaClient();
-
-// Inicializa o Express
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// Rotas
 app.use('/auth', authRoutes);
 app.use('/tarefas', tarefasRoutes);
 
-// Rota de teste
 app.get('/', (req, res) => {
   res.json({ message: 'API CRUD com Autenticação - Funcionando!' });
 });
@@ -40,7 +30,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   });
 });
 
-// Inicia o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });

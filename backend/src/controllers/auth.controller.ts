@@ -26,30 +26,34 @@ interface RecoverRequest {
   username: string;
 }
 
+// Interface CustomRequest estende Request para incluir "usuario"
+interface CustomRequest extends Request {
+  usuario?: {
+    username: string;
+    tipo: string;
+  };
+}
+
 export class AuthController {
   constructor() {
     this.criarUsuarioAdminPadrao();
   }
 
   private async criarUsuarioAdminPadrao() {
-    try {
-      const existe = await prisma.usuario.findUnique({ where: { username: 'admin' } });
-      if (!existe) {
-        const hashedPassword = await bcrypt.hash('admin', 10);
-        await prisma.usuario.create({
-          data: {
-            username: 'admin',
-            password: hashedPassword,
-            nome: 'Administrador',
-            tipo: '0',
-            status: 'A',
-            quant_acesso: 0
-          }
-        });
-        console.log('Usuário admin criado: admin/admin');
-      }
-    } catch (error) {
-      console.error('Erro ao criar usuário admin padrão:', error);
+    const existe = await prisma.usuario.findUnique({ where: { username: 'admin' } });
+    if (!existe) {
+      const hashedPassword = await bcrypt.hash('admin', 10);
+      await prisma.usuario.create({
+        data: {
+          username: 'admin',
+          password: hashedPassword,
+          nome: 'Administrador',
+          tipo: '0',
+          status: 'A',
+          quant_acesso: 0
+        }
+      });
+      console.log('Usuário admin criado: admin/admin');
     }
   }
 
@@ -91,35 +95,35 @@ export class AuthController {
   async login(req: Request, res: Response) {
     try {
       const { username, password } = req.body as LoginRequest;
+      console.log('[LOGIN] Requisição recebida:', { username, password });
+
       if (!username || !password) {
+        console.log('[LOGIN] Campos ausentes');
         return res.status(400).json({ message: 'Username e senha obrigatórios' });
       }
 
       const user = await prisma.usuario.findUnique({ where: { username } });
+      console.log('[LOGIN] Usuário encontrado no banco:', user);
+
       if (!user) {
+        console.log('[LOGIN] Usuário não existe');
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
       if (user.status === 'B') {
+        console.log('[LOGIN] Usuário bloqueado');
         return res.status(403).json({ message: 'Usuário bloqueado' });
       }
       if (user.status !== 'A') {
+        console.log('[LOGIN] Usuário inativo');
         return res.status(403).json({ message: 'Usuário inativo' });
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        // Simulação de bloqueio após falhas (exemplo didático)
-        if (Math.random() < 0.3) {
-          await prisma.usuario.update({
-            where: { username },
-            data: { status: 'B' }
-          });
-          return res.status(403).json({
-            message: 'Conta bloqueada após múltiplas tentativas incorretas. Entre em contato com o administrador.'
-          });
-        }
+      console.log('[LOGIN] Senha válida?', isPasswordValid);
 
+      if (!isPasswordValid) {
+        console.log('[LOGIN] Senha incorreta');
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
@@ -137,6 +141,7 @@ export class AuthController {
         { expiresIn: '1h' }
       );
 
+      console.log('[LOGIN] Login bem-sucedido para', username);
       return res.json({
         message: 'Login realizado com sucesso',
         token,
@@ -148,7 +153,7 @@ export class AuthController {
         }
       });
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
+      console.error('[LOGIN] Erro ao fazer login:', error);
       return res.status(500).json({ message: 'Erro interno do servidor' });
     }
   }
@@ -157,9 +162,9 @@ export class AuthController {
     return res.json({ message: 'Logout realizado com sucesso' });
   }
 
-  async changePassword(req: Request, res: Response) {
+  async changePassword(req: CustomRequest, res: Response) {
     try {
-      const userSession = req.usuario;  // Middleware deve popular req.usuario
+      const userSession = req.usuario;
       if (!userSession) return res.status(401).json({ message: 'Usuário não autenticado' });
 
       const { oldPassword, newPassword } = req.body as PasswordChangeRequest;

@@ -27,21 +27,23 @@ const TarefasList: React.FunctionComponent = () => {
   const navigate = useNavigate();
 
   // Carregar tarefas
-  const loadTarefas = async (page: number = 1) => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await tarefasService.listar(page);
-      setTarefas(response.tarefas);
-      setCurrentPage(response.pagination.page);
-      setTotalPages(response.pagination.totalPages);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao carregar tarefas');
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadTarefas = async (page: number = 1) => {
+  try {
+    setLoading(true);
+    setError('');
+    const response = await tarefasService.listar(page);
 
+    // Proteção extra para garantir array
+    setTarefas(response.tarefas ?? []);
+    
+    setCurrentPage(response.pagination.page);
+    setTotalPages(response.pagination.totalPages);
+  } catch (err: any) {
+    setError(err.response?.data?.message || 'Erro ao carregar tarefas');
+  } finally {
+    setLoading(false);
+  }
+};
   // Carregar tarefas ao montar o componente
   useEffect(() => {
     loadTarefas();

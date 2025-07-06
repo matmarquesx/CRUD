@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
+    "start": "ts-node src/server.ts",
+    "dev": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -27,6 +28,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "prisma": "^6.11.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "nodemon": "^3.1.0"
   }
 }

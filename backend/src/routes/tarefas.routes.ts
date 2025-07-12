@@ -1,35 +1,21 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
+import { TarefasController } from '../controllers/tarefas.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
+const tarefasController = new TarefasController();
 
-// Example: Get all tarefas
-router.get('/', (req, res) => {
-    // Logic to fetch tarefas from database
-    res.json({ message: 'List of tarefas' });
-});
+// Handler genérico para funções async
+const asyncHandler = (
+  fn: (req: Request, res: Response, next: NextFunction) => any
+) => (req: Request, res: Response, next: NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
-// Example: Create a new tarefa
-router.post('/', (req, res) => {
-    // Logic to create a new tarefa
-    res.status(201).json({ message: 'Tarefa created' });
-});
-
-// Example: Get a single tarefa by ID
-router.get('/:id', (req, res) => {
-    // Logic to fetch a tarefa by ID
-    res.json({ message: `Tarefa with ID ${req.params.id}` });
-});
-
-// Example: Update a tarefa by ID
-router.put('/:id', (req, res) => {
-    // Logic to update a tarefa by ID
-    res.json({ message: `Tarefa with ID ${req.params.id} updated` });
-});
-
-// Example: Delete a tarefa by ID
-router.delete('/:id', (req, res) => {
-    // Logic to delete a tarefa by ID
-    res.json({ message: `Tarefa with ID ${req.params.id} deleted` });
-});
+router.get('/', authMiddleware, asyncHandler((req, res) => tarefasController.list(req, res)));
+router.get('/:id', authMiddleware, asyncHandler((req, res) => tarefasController.getById(req, res)));
+router.post('/', authMiddleware, asyncHandler((req, res) => tarefasController.create(req, res)));
+router.put('/:id', authMiddleware, asyncHandler((req, res) => tarefasController.update(req, res)));
+router.delete('/:id', authMiddleware, asyncHandler((req, res) => tarefasController.delete(req, res)));
 
 export const tarefasRoutes = router;

@@ -11,15 +11,13 @@ const api = axios.create({
 // Interceptor para adicionar token em todas as requisições
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('@App:token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Serviço de autenticação
@@ -44,14 +42,14 @@ export const authService = {
 
   // Alteração de senha
   changePassword: async (oldPassword: string, newPassword: string): Promise<any> => {
-    const response = await api.put('/auth/password', { oldPassword, newPassword });
-    return response.data;
-  },
+  const response = await api.post('/auth/change-password', { oldPassword, newPassword });
+  return response.data;
+},
 
   // Recuperação de senha
   recoverPassword: async (username: string): Promise<any> => {
-    const response = await api.post('/auth/recover', { username });
-    return response.data;
+  const response = await api.post('/auth/recover-password', { username });
+  return response.data;
   }
 };
 

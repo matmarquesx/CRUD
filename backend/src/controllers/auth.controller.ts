@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -34,6 +34,20 @@ interface CustomRequest extends Request {
   };
 }
 
+export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
+  const [, token] = authHeader.split(' ');
+  try {
+    const secret = process.env.JWT_SECRET!;
+    const decoded = jwt.verify(token, secret) as { username: string; tipo: string };
+    (req as any).usuario = { username: decoded.username, tipo: decoded.tipo };
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Token inválido' });
+  }
+}
 export class AuthController {
   constructor() {
     this.criarUsuarioAdminPadrao();
@@ -164,7 +178,7 @@ export class AuthController {
 
   async changePassword(req: CustomRequest, res: Response) {
     try {
-      const userSession = req.usuario;
+      const userSession = (req as any).usuario;
       if (!userSession) return res.status(401).json({ message: 'Usuário não autenticado' });
 
       const { oldPassword, newPassword } = req.body as PasswordChangeRequest;
@@ -208,7 +222,7 @@ export class AuthController {
       });
 
       return res.json({
-        message: 'Uma nova senha foi enviada para o seu e-mail',
+        message: 'Recuperação realizada com sucesso',
         tempPassword: process.env.NODE_ENV === 'development' ? tempPassword : undefined
       });
     } catch (error) {
